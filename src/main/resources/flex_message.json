@@ -1,0 +1,74 @@
+{
+  "type": "bubble",
+  "header": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "Dicoding Academy",
+        "weight": "bold"
+      }
+    ]
+  },
+  "hero": {
+    "type": "image",
+    "url": "https://www.dicoding.com/images/small/academy/menjadi_android_developer_expert_logo_041217105708.png",
+    "size": "full",
+    "aspectRatio": "4:3",
+    "aspectMode": "cover"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "Menjadi Android Developer Expert",
+        "size": "sm",
+        "color": "#c9302c",
+        "weight": "bold"
+      },
+      {
+        "type": "text",
+        "text": "oleh: Dicoding Indonesia",
+        "size": "sm",
+        "color": "#c9302c"
+      },
+      {
+        "type": "text",
+        "text": "Jadilah expert di dunia pemrograman Android. Materi disusun oleh Dicoding sebagai Google Authorized Training Partner.",
+        "size": "sm",
+        "wrap": true,
+        "margin": "lg"
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "horizontal",
+    "spacing": "sm",
+    "contents": [
+      {
+        "type": "button",
+        "style": "secondary",
+        "action": {
+          "type": "postback",
+          "label": "Trial",
+          "displayText": "Trial",
+          "data": "Trial"
+        }
+      },
+      {
+        "type": "button",
+        "style": "primary",
+        "action": {
+          "type": "postback",
+          "label": "Daftar",
+          "displayText": "Daftar",
+          "data": "Daftar"
+        }
+      }
+    ]
+  }
+}
