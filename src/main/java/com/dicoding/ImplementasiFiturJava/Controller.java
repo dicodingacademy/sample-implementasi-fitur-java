@@ -34,8 +34,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import static jdk.nashorn.internal.objects.NativeArray.push;
+
 @RestController
 public class Controller {
+
     @Autowired
     @Qualifier("lineMessagingClient")
     private LineMessagingClient lineMessagingClient;
@@ -89,6 +92,7 @@ public class Controller {
 
             // Kode eventsModel di bawah ini digunakan pada materi group room api dan flex messages
             // Sesuaikan penggunaan dengan keterangan pada modul
+
             eventsModel.getEvents().forEach((event)->{
                 if (event instanceof MessageEvent) {
                     if (event.getSource() instanceof GroupSource || event.getSource() instanceof RoomSource) {
@@ -122,7 +126,7 @@ public class Controller {
     @RequestMapping(value="/multicast", method=RequestMethod.GET)
     public ResponseEntity<String> multicast(){
         String[] userIdList = {
-                "U1a1a272d6761ac3c3a31cce6ce1fceff"};
+                "Isi dengan User ID Anda"};
         Set<String> listUsers = new HashSet<String>(Arrays.asList(userIdList));
         if(listUsers.size() > 0){
             String textMsg = "Ini pesan multicast";
@@ -133,7 +137,7 @@ public class Controller {
 
     @RequestMapping(value = "/profile", method = RequestMethod.GET)
     public ResponseEntity<String> profile(){
-        String userId = "U1a1a272d6761ac3c3a31cce6ce1fceff";
+        String userId = "Isi dengan User ID Anda";
         UserProfileResponse profile = getProfile(userId);
 
         if (profile != null) {
@@ -222,6 +226,7 @@ public class Controller {
             throw new RuntimeException(e);
         }
     }
+
     private void handleOneOnOneChats(MessageEvent event) {
         if  (event.getMessage() instanceof AudioMessageContent
                 || event.getMessage() instanceof ImageMessageContent
@@ -251,8 +256,10 @@ public class Controller {
             ClassLoader classLoader = getClass().getClassLoader();
             String flexTemplate = IOUtils.toString(classLoader.getResourceAsStream("flex_message.json"));
 
+
             ObjectMapper objectMapper = ModelObjectMapper.createNewObjectMapper();
             FlexContainer flexContainer = objectMapper.readValue(flexTemplate, FlexContainer.class);
+
 
             ReplyMessage replyMessage = new ReplyMessage(replyToken, new FlexMessage("Dicoding Academy", flexContainer));
             reply(replyMessage);
@@ -260,9 +267,8 @@ public class Controller {
             throw new RuntimeException(e);
         }
     }
-
     private void handleContentMessage(MessageEvent event) {
-        String baseURL     = "https://fiturchatbotjava.herokuapp.com";
+        String baseURL     = "https://chatbotjava.herokuapp.com";
         String contentURL  = baseURL+"/content/"+ event.getMessage().getId();
         String contentType = event.getMessage().getClass().getSimpleName();
         String textMsg     = contentType.substring(0, contentType.length() -14)
@@ -271,7 +277,6 @@ public class Controller {
 
         replyText(event.getReplyToken(), textMsg);
     }
-
     private void handleTextMessage(MessageEvent event) {
         TextMessageContent textMessageContent = (TextMessageContent) event.getMessage();
 
