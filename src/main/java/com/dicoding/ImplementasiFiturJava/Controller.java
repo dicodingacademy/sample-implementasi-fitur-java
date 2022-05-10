@@ -9,6 +9,8 @@ import com.linecorp.bot.model.PushMessage;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.*;
+import com.linecorp.bot.model.event.source.GroupSource;
+import com.linecorp.bot.model.event.source.RoomSource;
 import com.linecorp.bot.model.message.StickerMessage;
 import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.objectmapper.ModelObjectMapper;
@@ -60,23 +62,10 @@ public class Controller {
 
             eventsModel.getEvents().forEach((event) -> {
                 if (event instanceof MessageEvent) {
-                    if (((MessageEvent) event).getMessage() instanceof AudioMessageContent
-                            || ((MessageEvent) event).getMessage() instanceof ImageMessageContent
-                            || ((MessageEvent) event).getMessage() instanceof VideoMessageContent
-                            || ((MessageEvent) event).getMessage() instanceof FileMessageContent
-                    ) {
-                        String baseURL = "https://contohlinebotjava.herokuapp.com";
-                        String contentURL = baseURL + "/content/" + ((MessageEvent) event).getMessage().getId();
-                        String contentType = ((MessageEvent) event).getMessage().getClass().getSimpleName();
-                        String textMsg = contentType.substring(0, contentType.length() - 14)
-                                + " yang kamu kirim bisa diakses dari link:\n"
-                                + contentURL;
-
-                        replyText(((MessageEvent) event).getReplyToken(), textMsg);
+                    if (event.getSource() instanceof GroupSource || event.getSource() instanceof RoomSource) {
+                        handleGroupRoomChats((MessageEvent) event);
                     } else {
-                        MessageEvent messageEvent = (MessageEvent) event;
-                        TextMessageContent textMessageContent = (TextMessageContent) messageEvent.getMessage();
-                        replyText(messageEvent.getReplyToken(), textMessageContent.getText());
+                        handleOneOnOneChats((MessageEvent) event);
                     }
                 }
             });
@@ -85,6 +74,20 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private void handleOneOnOneChats(MessageEvent event) {
+
+    }
+
+    private void handleGroupRoomChats(MessageEvent event) {
+        if(!event.getSource().getUserId().isEmpty()) {
+            String userId = event.getSource().getUserId();
+            UserProfileResponse profile = getProfile(userId);
+            replyText(event.getReplyToken(), "Hello, " + profile.getDisplayName());
+        } else {
+            replyText(event.getReplyToken(), "Hello, what is your name?");
         }
     }
 
