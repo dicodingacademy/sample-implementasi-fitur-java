@@ -12,6 +12,7 @@ import com.linecorp.bot.model.event.message.*;
 import com.linecorp.bot.model.event.source.GroupSource;
 import com.linecorp.bot.model.event.source.RoomSource;
 import com.linecorp.bot.model.message.FlexMessage;
+import com.linecorp.bot.model.message.StickerMessage;
 import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.message.flex.container.FlexContainer;
 import com.linecorp.bot.model.objectmapper.ModelObjectMapper;
@@ -63,6 +64,38 @@ public class Controller {
             ObjectMapper objectMapper = ModelObjectMapper.createNewObjectMapper();
             EventsModel eventsModel = objectMapper.readValue(eventsPayload, EventsModel.class);
 
+            /* Kode eventsModel di bawah ini digunakan pada materi reply messages, push messages, multicast profile, dan content api
+            // Sesuaikan penggunaan dengan keterangan pada modul
+
+            eventsModel.getEvents().forEach((event)->{
+                if (event instanceof MessageEvent) {
+                    if  ((  (MessageEvent) event).getMessage() instanceof AudioMessageContent
+                            || ((MessageEvent) event).getMessage() instanceof ImageMessageContent
+                            || ((MessageEvent) event).getMessage() instanceof VideoMessageContent
+                            || ((MessageEvent) event).getMessage() instanceof FileMessageContent
+                    ) {
+                        String baseURL     = "https://fiturchatbotjava.herokuapp.com";
+                        String contentURL  = baseURL+"/content/"+ ((MessageEvent) event).getMessage().getId();
+                        String contentType = ((MessageEvent) event).getMessage().getClass().getSimpleName();
+                        String textMsg     = contentType.substring(0, contentType.length() -14)
+                                + " yang kamu kirim bisa diakses dari link:\n "
+                                + contentURL;
+
+                        replyText(((MessageEvent) event).getReplyToken(), textMsg);
+                    } else {
+                        MessageEvent messageEvent = (MessageEvent) event;
+                        TextMessageContent textMessageContent = (TextMessageContent) messageEvent.getMessage();
+                        replyText(messageEvent.getReplyToken(), textMessageContent.getText());
+                    }
+                }
+            });
+            // Batas kode eventsModel pada modul reply messages, push messages, multicast profile, dan content api
+             */
+
+
+            // Kode eventsModel di bawah ini digunakan pada materi group room api dan flex messages
+            // Sesuaikan penggunaan dengan keterangan pada modul
+
             eventsModel.getEvents().forEach((event) -> {
                 if (event instanceof MessageEvent) {
                     if (event.getSource() instanceof GroupSource || event.getSource() instanceof RoomSource) {
@@ -72,6 +105,7 @@ public class Controller {
                     }
                 }
             });
+            // Batas kode events model group room api dan flex messages
 
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (IOException e) {
@@ -89,15 +123,13 @@ public class Controller {
         PushMessage pushMessage = new PushMessage(userId, textMessage);
         push(pushMessage);
 
-
         return new ResponseEntity<>("Push message:" + textMsg + "\nsent to: " + userId, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/multicast", method = RequestMethod.GET)
     public ResponseEntity<String> multicast() {
         String[] userIdList = {
-                "Ud8d1840218bd383b162e112b509d6ca2"
-        };
+                "Isi dengan User ID Anda"};
         Set<String> listUsers = new HashSet<>(Arrays.asList(userIdList));
         if (listUsers.size() > 0) {
             String textMsg = "Ini pesan multicast";
@@ -108,7 +140,7 @@ public class Controller {
 
     @RequestMapping(value = "/profile", method = RequestMethod.GET)
     public ResponseEntity<String> profile() {
-        String userId = "Ud8d1840218bd383b162e112b509d6ca2";
+        String userId = "Isi dengan User ID Anda";
         UserProfileResponse profile = getProfile(userId);
 
         if (profile != null) {
@@ -120,23 +152,6 @@ public class Controller {
             return new ResponseEntity<>("Hello, " + profileName, HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-    @RequestMapping(value = "/profile/{id}", method = RequestMethod.GET)
-    public ResponseEntity<String> profile(
-            @PathVariable("id") String userId
-    ) {
-        UserProfileResponse profile = getProfile(userId);
-
-        if (profile != null) {
-            String profileName = profile.getDisplayName();
-            TextMessage textMessage = new TextMessage("Hello, " + profileName);
-            PushMessage pushMessage = new PushMessage(userId, textMessage);
-            push(pushMessage);
-
-            return new ResponseEntity<>("Hello, " + profileName, HttpStatus.OK);
-        }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
@@ -166,22 +181,9 @@ public class Controller {
                 || event.getMessage() instanceof VideoMessageContent
                 || event.getMessage() instanceof FileMessageContent
         ) {
-            String baseURL = "https://belajarubic-line-java.herokuapp.com";
-            String contentURL = baseURL + "/content/" + event.getMessage().getId();
-            String contentType = event.getMessage().getClass().getSimpleName();
-            String textMsg = contentType.substring(0, contentType.length() - 14)
-                    + " yang kamu kirim bisa diakses dari link:\n "
-                    + contentURL;
-
-            replyText(event.getReplyToken(), textMsg);
+            handleContentMessage(event);
         } else if (event.getMessage() instanceof TextMessageContent) {
-            TextMessageContent textMessageContent = (TextMessageContent) event.getMessage();
-
-            if (textMessageContent.getText().toLowerCase().contains("flex")) {
-                replyFlexMessage(event.getReplyToken());
-            } else {
-                replyText(event.getReplyToken(), textMessageContent.getText());
-            }
+            handleTextMessage(event);
         } else {
             replyText(event.getReplyToken(), "Unknown Message");
         }
@@ -246,6 +248,12 @@ public class Controller {
         reply(replyMessage);
     }
 
+    private void replySticker(String replyToken, String packageId, String stickerId) {
+        StickerMessage stickerMessage = new StickerMessage(packageId, stickerId);
+        ReplyMessage replyMessage = new ReplyMessage(replyToken, stickerMessage);
+        reply(replyMessage);
+    }
+
     private void replyFlexMessage(String replyToken) {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
@@ -258,6 +266,27 @@ public class Controller {
             reply(replyMessage);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void handleContentMessage(MessageEvent event) {
+        String baseURL = "https://chatbotjava.herokuapp.com";
+        String contentURL = baseURL + "/content/" + event.getMessage().getId();
+        String contentType = event.getMessage().getClass().getSimpleName();
+        String textMsg = contentType.substring(0, contentType.length() - 14)
+                + " yang kamu kirim bisa diakses dari link:\n "
+                + contentURL;
+
+        replyText(event.getReplyToken(), textMsg);
+    }
+
+    private void handleTextMessage(MessageEvent event) {
+        TextMessageContent textMessageContent = (TextMessageContent) event.getMessage();
+
+        if (textMessageContent.getText().toLowerCase().contains("flex")) {
+            replyFlexMessage(event.getReplyToken());
+        } else {
+            replyText(event.getReplyToken(), textMessageContent.getText());
         }
     }
 }
