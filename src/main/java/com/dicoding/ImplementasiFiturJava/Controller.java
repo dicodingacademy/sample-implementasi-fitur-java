@@ -3,6 +3,7 @@ package com.dicoding.ImplementasiFiturJava;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linecorp.bot.client.LineBlobClient;
 import com.linecorp.bot.client.LineMessagingClient;
+import com.linecorp.bot.model.PushMessage;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.TextMessageContent;
@@ -59,6 +60,27 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/pushmessage/{id}/{message}", method = RequestMethod.GET)
+    public ResponseEntity<String> pushmessage(
+            @PathVariable("id") String userId,
+            @PathVariable("message") String textMsg
+    ) {
+        TextMessage textMessage = new TextMessage(textMsg);
+        PushMessage pushMessage = new PushMessage(userId, textMessage);
+        push(pushMessage);
+
+
+        return new ResponseEntity<String>("Push message:" + textMsg + "\nsent to: " + userId, HttpStatus.OK);
+    }
+
+    private void push(PushMessage pushMessage) {
+        try {
+            lineMessagingClient.pushMessage(pushMessage).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
         }
     }
 
