@@ -3,6 +3,7 @@ package com.dicoding.ImplementasiFiturJava;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linecorp.bot.client.LineBlobClient;
 import com.linecorp.bot.client.LineMessagingClient;
+import com.linecorp.bot.model.Multicast;
 import com.linecorp.bot.model.PushMessage;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.event.MessageEvent;
@@ -18,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -63,6 +67,33 @@ public class Controller {
         }
     }
 
+    @RequestMapping(value = "/multicast", method = RequestMethod.GET)
+    public ResponseEntity<String> multicast() {
+        String[] userIdList = {
+                "U206d25c2ea6bd87c17655609xxxxxxxx",
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"};
+        Set<String> listUsers = new HashSet<>(Arrays.asList(userIdList));
+        if (listUsers.size() > 0) {
+            String textMsg = "Ini pesan multicast";
+            sendMulticast(listUsers, textMsg);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private void sendMulticast(Set<String> sourceUsers, String txtMessage) {
+        TextMessage message = new TextMessage(txtMessage);
+        Multicast multicast = new Multicast(sourceUsers, message);
+
+        try {
+            lineMessagingClient.multicast(multicast).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @RequestMapping(value = "/pushmessage/{id}/{message}", method = RequestMethod.GET)
     public ResponseEntity<String> pushmessage(
             @PathVariable("id") String userId,
@@ -73,7 +104,7 @@ public class Controller {
         push(pushMessage);
 
 
-        return new ResponseEntity<String>("Push message:" + textMsg + "\nsent to: " + userId, HttpStatus.OK);
+        return new ResponseEntity<>("Push message:" + textMsg + "\nsent to: " + userId, HttpStatus.OK);
     }
 
     private void push(PushMessage pushMessage) {
